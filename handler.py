@@ -5,7 +5,7 @@ import model.kinematics
 from gi.repository import GObject, Gst, Gtk
 import os
 import peewee
-from peewee import fn
+from peewee import FieldAlias, fn
 from videoplayer import VideoPlayer
 import livediagram
 import matplotlib
@@ -84,13 +84,20 @@ class Handler (VideoPlayer):
         builder.connect_signals(self)
         self.builder = builder
 
+        # Setting up the video player
+        self.video_gtk_box = builder.get_object("video_gtk_box")
+        # self.video_player = builder.get_object("video_player")
+        # print("Get elements by ID - self.video_player: ", self.video_player)
+        print("Get elements by ID - self.video_gtk_box: ", self.video_gtk_box)
+        self.packGtkBoxWidget(self.video_gtk_box)
+
         # get elements by ID
         self.video_store = builder.get_object("video_store")
         self.kinematic_store = builder.get_object("kinematic_store")
         self.gesture_store = builder.get_object("gesture_store")
         self.main_window = builder.get_object("main_window")
         self.scale_video_position = builder.get_object("scale_video_position")
-        self.video_player = builder.get_object("video_player")
+
         self.label_subject = builder.get_object("label_subject")
         self.gesture_diagram_box = builder.get_object("gesture_diagram_box")
         self.gesture_playlist_selection = builder.get_object("gesture_playlist_selection")

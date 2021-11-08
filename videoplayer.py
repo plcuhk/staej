@@ -27,10 +27,18 @@ class VideoPlayer(GNotifier) :
     def __init__(self, **properties):
         GNotifier.__init__(self, **properties)
 
-        self.playbin = Gst.ElementFactory.make('playbin', None)
+        # setting up the player pipeline
+        self.playbin = Gst.ElementFactory.make('playbin3', None)
         if not self.playbin :
+            print("'playbin' gstreamer plugin missing\n")
             sys.stderr.write("'playbin' gstreamer plugin missing\n")
             sys.exit(1)
+        else:
+            print("loaded playbin plugin")
+        self.playerFactory = self.playbin.get_factory()
+        self.gtksink = self.playerFactory.make('gtksink')
+        self.playbin.set_property("video-sink", self.gtksink)
+        # self.gtksink.props.widget.show()
 
         self.pipeline = Gst.Pipeline()
         self.bus = self.pipeline.get_bus()
@@ -42,6 +50,12 @@ class VideoPlayer(GNotifier) :
         self.pipeline.add(self.playbin)
 
         GObject.timeout_add(100, self.triggerVideoPosition)
+
+    def packGtkBoxWidget(self, video_gtk_box):
+        ## adding to the gtkbox ui
+        video_gtk_box.pack_end(self.gtksink.props.widget, True, True, 0)
+        self.gtksink.props.widget.show()
+
 
     def triggerVideoPosition(self):
         self.set_property("video-position", -1)
@@ -56,6 +70,7 @@ class VideoPlayer(GNotifier) :
 
     @video_playing.setter
     def video_playing(self, value):
+        print("Video playing setter:", value)
         self.pipeline.set_state(Gst.State.PLAYING if value else Gst.State.PAUSED)
 
     @property
@@ -81,24 +96,36 @@ class VideoPlayer(GNotifier) :
 
     def load(self, path):
         self.pause()
-        uri = path if Gst.uri_is_valid(path) else Gst.filename_to_uri(path)
+
+        # testing
+        # path = "https://www.freedesktop.org/software/gstreamer-sdk" + \
+        #                                 "/data/media/sintel_trailer-480p.webm"
+
+        # original
+        url_path = path if Gst.uri_is_valid(path) else Gst.filename_to_uri(path)
+        uri = url_path
+        print("Loading uri path: ", uri, "Original Path: ", path)
+
         self.pipeline.set_state(Gst.State.READY)
         self.playbin.set_property('uri', uri)
+
+        # print("self.video_player.get_property('window')", self.video_player.get_property('window'))
+        # print("xid", getXid(self.video_player.get_property('window')))
+
         self.play()
         self.pause()
 
-
     def playpause(self, *dontcare):
-        self.xid = getXid(self.video_player.get_property('window'))
+        # self.xid = getXid(self.video_player.get_property('window'))
 
         self.video_playing = not self.video_playing
 
     def play(self, *dontcare):
-        self.xid = getXid(self.video_player.get_property('window'))
+        # self.xid = getXid(self.video_player.get_property('window'))
         self.video_playing = True
 
     def pause(self, *dontcare):
-        self.xid = getXid(self.video_player.get_property('window'))
+        # self.xid = getXid(self.video_player.get_property('window'))
         self.video_playing = False
 
     def relativeSeek(self, button):
@@ -113,8 +140,11 @@ class VideoPlayer(GNotifier) :
 
     def onSyncMessage(self, bus, msg):
         if msg.get_structure().get_name() == 'prepare-window-handle':
-            # print('prepare-window-handle')
+            print('prepare-window-handle XID:', self.xid)
             msg.src.set_window_handle(self.xid)
+
+            print(msg)
+            print(msg.src)
 
     def onEOS(self, bus, msg):
         print('onEOS(): seeking to start of video')

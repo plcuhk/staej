@@ -2,7 +2,7 @@ from gi.repository import GObject
 
 #import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-import numpy
+import numpy as np
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -86,8 +86,8 @@ class TrajectoryPlot(MatplotlibDrawingArea):
             x, y, z = [a[self.__highlight_section[0]:self.__highlight_section[1]] for a in self.__data[subplot]]
             if subplot in self.__highlight_sections :
                 highlight = self.__highlight_sections[subplot][0]
-                highlight.set_xdata(x)
-                highlight.set_ydata(y)
+                highlight.set_xdata(np.asarray(x))
+                highlight.set_ydata(np.asarray(y))
                 highlight.set_3d_properties(z)
             else:
                 self.__highlight_sections[subplot] = subplot.plot(x, y, z)
@@ -127,8 +127,8 @@ class TrajectoryPlot(MatplotlibDrawingArea):
             x, y, z = [x[i] for x in self.__data[subplot]] # get coordinates of each subplot
             if subplot in self.__highlight_points :
                 highlight = self.__highlight_points[subplot][0]
-                highlight.set_xdata(x)
-                highlight.set_ydata(y)
+                highlight.set_xdata(np.asarray(x))
+                highlight.set_ydata(np.asarray(y))
                 highlight.set_3d_properties(z)
             else :
                 self.__highlight_points[subplot] = subplot.plot([x], [y], [z], 'ro')

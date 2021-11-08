@@ -118,6 +118,7 @@ def extract_videos(filename, config) :
                         # db.commit()
         except Exception as e :
             transaction.rollback()
+            print("Exception captured: ", str(e))
             raise e
 
         return name
